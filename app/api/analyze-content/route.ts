@@ -160,7 +160,6 @@ async function analyzeText(text: string) {
   const model = genAI.getGenerativeModel({ model: 'gemini-3.5-flash-lite' })
   const result = await model.generateContent({
     contents: [{ role: 'user', parts: [{ text: `${TEXT_PROMPT}\n\nText to analyze:\n"""\n${text}\n"""` }] }],
-    generationConfig: { responseMimeType: 'application/json' },
   })
   const parsed = safeParseJson(result.response.text().trim())
   return shape(parsed)
@@ -170,7 +169,6 @@ async function analyzeLink(url: string) {
   const model = genAI.getGenerativeModel({ model: 'gemini-3.5-flash-lite' })
   const result = await model.generateContent({
     contents: [{ role: 'user', parts: [{ text: `${LINK_PROMPT}\n\nURL to analyze:\n${url}` }] }],
-    generationConfig: { responseMimeType: 'application/json' },
   })
   const parsed = safeParseJson(result.response.text().trim())
   return shape(parsed)
@@ -202,7 +200,6 @@ async function analyzeImage(imageUrl?: string, imageBase64?: string, imageMimeTy
 
   const result = await model.generateContent({
     contents: [{ role: 'user', parts: [{ text: `${IMAGE_PROMPT}\n\nAnalyze this image:` }, imagePart] }],
-    generationConfig: { responseMimeType: 'application/json' },
   })
   const parsed = safeParseJson(result.response.text().trim())
   return shape(parsed)
@@ -223,8 +220,11 @@ function shape(parsed: any) {
 }
 
 function safeParseJson(raw: string): any {
-  try { return JSON.parse(raw) } catch { /* fall through */ }
-  const match = raw.match(/\{[\s\S]*\}/)
+  // Strip markdown code fences if present (```json ... ``` or ``` ... ```)
+  const stripped = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim()
+  try { return JSON.parse(stripped) } catch { /* fall through */ }
+  // Try to extract first {...} block
+  const match = stripped.match(/\{[\s\S]*\}/)
   if (match) { try { return JSON.parse(match[0]) } catch { /* fall through */ } }
   return {}
 }

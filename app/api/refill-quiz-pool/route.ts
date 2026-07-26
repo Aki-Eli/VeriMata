@@ -1,9 +1,8 @@
-import { GoogleGenAI } from '@google/genai'
+import { GoogleGenerativeAI } from '@google/generative-ai'
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' })
-const MODEL = 'gemini-3.5-flash-lite'
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '')
 
 // Use service role key so we can write to the pool tables
 const supabaseAdmin = createClient(
@@ -112,17 +111,17 @@ async function generateAiImage(prompt: string): Promise<string | null> {
 
 async function refillTextPool(needed: number): Promise<number> {
   if (needed <= 0) return 0
+  const model = genAI.getGenerativeModel({ model: 'gemini-3.5-flash-lite' })
   const shuffled = [...TOPICS].sort(() => Math.random() - 0.5)
   let inserted = 0
 
+  // Generate in batches of 3, but never exceed `needed`
   while (inserted < needed) {
     const batch = Math.min(3, needed - inserted)
     const batchTopics = shuffled.splice(0, batch)
 
     try {
-      const response = await ai.models.generateContent({
-        model: MODEL,
-        contents: `Generate ${batch} quiz questions for a "Spot the AI" game.
+      const result = await model.generateContent(`Generate ${batch} quiz questions for a "Spot the AI" game.
 Each shows two texts — one human-written, one AI-generated — player identifies the AI one.
 
 Return ONLY a valid JSON array, no markdown:
@@ -135,10 +134,9 @@ Return ONLY a valid JSON array, no markdown:
   }
 ]
 
-Topics: ${batchTopics.join(', ')}`,
-      })
+Topics: ${batchTopics.join(', ')}`)
 
-      const raw = (response.text ?? '').trim()
+      const raw = result.response.text().trim()
       const match = raw.match(/\[[\s\S]*\]/)
       if (!match) continue
       const questions = JSON.parse(match[0])
@@ -197,6 +195,7 @@ Topics: ${batchTopics.join(', ')}`,
 
 async function refillImagePool(needed: number): Promise<number> {
   if (needed <= 0) return 0
+  const model = genAI.getGenerativeModel({ model: 'gemini-3.5-flash-lite' })
   const shuffled = [...TOPICS].sort(() => Math.random() - 0.5)
   let inserted = 0
 
@@ -236,13 +235,13 @@ async function refillImagePool(needed: number): Promise<number> {
       break
     }
 
+    // Generate explanation
     let explanation = `AI-generated images of "${topic}" often show unnatural textures, overly perfect lighting, fine detail distortions, and dreamlike backgrounds.`
     try {
-      const expResponse = await ai.models.generateContent({
-        model: MODEL,
-        contents: `An AI image was generated of "${topic}". Write 2-3 sentences about specific visual tells: texture issues, lighting anomalies, fine detail errors. Be concise.`,
-      })
-      const exp = (expResponse.text ?? '').trim()
+      const expResult = await model.generateContent(
+        `An AI image was generated of "${topic}". Write 2-3 sentences about specific visual tells: texture issues, lighting anomalies, fine detail errors. Be concise.`
+      )
+      const exp = expResult.response.text().trim()
       if (exp.length > 20) explanation = exp
     } catch { /* use default */ }
 

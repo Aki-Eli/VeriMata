@@ -1,8 +1,8 @@
-import { GoogleGenAI } from '@google/genai'
+import { GoogleGenerativeAI } from '@google/generative-ai'
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' })
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '')
 const MODEL = 'gemini-3.5-flash-lite'
 
 const supabaseAdmin = createClient(
@@ -149,19 +149,15 @@ export async function GET(req: Request) {
 // ── ANALYZERS ──────────────────────────────────────────────────────────────
 
 async function analyzeText(text: string) {
-  const response = await ai.models.generateContent({
-    model: MODEL,
-    contents: `${TEXT_PROMPT}\n\nText to analyze:\n"""\n${text}\n"""`,
-  })
-  return shape(safeParseJson(response.text ?? ''))
+  const model = genAI.getGenerativeModel({ model: MODEL })
+  const result = await model.generateContent(`${TEXT_PROMPT}\n\nText to analyze:\n"""\n${text}\n"""`)
+  return shape(safeParseJson(result.response.text().trim()))
 }
 
 async function analyzeLink(url: string) {
-  const response = await ai.models.generateContent({
-    model: MODEL,
-    contents: `${LINK_PROMPT}\n\nURL to analyze:\n${url}`,
-  })
-  return shape(safeParseJson(response.text ?? ''))
+  const model = genAI.getGenerativeModel({ model: MODEL })
+  const result = await model.generateContent(`${LINK_PROMPT}\n\nURL to analyze:\n${url}`)
+  return shape(safeParseJson(result.response.text().trim()))
 }
 
 async function analyzeImage(imageUrl?: string, imageBase64?: string, imageMimeType?: string) {
@@ -186,13 +182,12 @@ async function analyzeImage(imageUrl?: string, imageBase64?: string, imageMimeTy
     return shape({})
   }
 
-  const response = await ai.models.generateContent({
-    model: MODEL,
-    contents: [
-      { role: 'user', parts: [{ text: `${IMAGE_PROMPT}\n\nAnalyze this image:` }, imagePart] },
-    ],
-  })
-  return shape(safeParseJson(response.text ?? ''))
+  const model = genAI.getGenerativeModel({ model: MODEL })
+  const result = await model.generateContent([
+    `${IMAGE_PROMPT}\n\nAnalyze this image:`,
+    imagePart,
+  ])
+  return shape(safeParseJson(result.response.text().trim()))
 }
 
 // ── HELPERS ────────────────────────────────────────────────────────────────

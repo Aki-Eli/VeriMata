@@ -67,7 +67,7 @@ export async function POST(req: Request) {
 }
 
 async function analyzeText(text: string) {
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
+  const model = genAI.getGenerativeModel({ model: 'gemini-3.5-flash-lite' })
   const result = await model.generateContent({
     contents: [{ role: 'user', parts: [{ text: `${TEXT_SYSTEM_PROMPT}\n\nText to analyze:\n"""\n${text}\n"""` }] }],
     generationConfig: { responseMimeType: 'application/json' },
@@ -83,7 +83,7 @@ async function analyzeText(text: string) {
 }
 
 async function analyzeLink(url: string) {
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
+  const model = genAI.getGenerativeModel({ model: 'gemini-3.5-flash-lite' })
   const result = await model.generateContent({
     contents: [{ role: 'user', parts: [{ text: `${LINK_SYSTEM_PROMPT}\n\nAnalyze this link:\n${url}` }] }],
     generationConfig: { responseMimeType: 'application/json' },
@@ -100,7 +100,7 @@ async function analyzeLink(url: string) {
 }
 
 async function analyzeImage(imageUrl?: string, imageBase64?: string, imageMimeType?: string) {
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
+  const model = genAI.getGenerativeModel({ model: 'gemini-3.5-flash-lite' })
 
   let imagePart: any
 

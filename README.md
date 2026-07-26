@@ -1,4 +1,4 @@
-# Spot the Bot — Combined Web App
+# VeriMata
 
 A unified **Next.js** app that merges the training game with the Digital Nutrition Label content analyzer.
 

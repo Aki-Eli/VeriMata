@@ -59,17 +59,32 @@ function AnalyzerContent() {
       .then(r => r.json())
       .then(data => {
         if (data.error) { setState({ status: 'error', message: data.error }); return }
+        // Map new DB schema fields
+        const deep = data.deep_analysis ?? {}
         setState({
           status: 'done',
           result: {
             aiProbability: data.ai_probability,
-            summary: data.summary,
-            flags: data.flags ?? [],
-            reasoning: data.reasoning,
-            deepReport: data.deep_report,
+            summary: data.verdict ?? '',
+            flags: data.summary_flags ?? [],
+            reasoning: data.summary_reason ?? '',
+            deepReport: {
+              originAssessment: deep.originAssessment,
+              rhetoricalTechniques: deep.rhetoricalTechniques,
+              factualClaims: deep.factualClaims,
+              domainAnalysis: deep.domainAnalysis,
+              pathAnalysis: deep.pathAnalysis,
+              trustSignals: deep.trustSignals,
+              anatomicalAnalysis: deep.anatomicalAnalysis,
+              lightingAndShadows: deep.lightingAnalysis,
+              textureAndDetail: deep.textureAnalysis,
+              overallVerdict: deep.overallVerdict,
+            },
             contentType: data.content_type,
             subject: data.subject,
-            biasFlags: data.flags ?? [],
+            confidence: data.confidence,
+            crossChecks: data.cross_checks ?? [],
+            biasFlags: data.summary_flags ?? [],
           },
           mode: (data.content_type ?? 'text') as AnalysisMode,
         })

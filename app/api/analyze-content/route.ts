@@ -115,10 +115,12 @@ export async function POST(req: Request) {
           content_type: result.contentType,
           subject: result.subject,
           ai_probability: result.aiProbability,
-          summary: result.summary,
-          flags: result.flags,
-          reasoning: result.reasoning,
-          deep_report: result.deepReport,
+          verdict: result.summary,
+          summary_flags: result.flags,
+          summary_reason: result.reasoning,
+          deep_analysis: result.deepReport,
+          cross_checks: [],
+          confidence: 'medium',
           analyzed_at: new Date().toISOString(),
         }, { onConflict: 'user_id' })
     }

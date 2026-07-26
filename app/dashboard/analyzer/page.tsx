@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect, Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Shield, Upload, Link2, FileText, X, AlertTriangle, CheckCircle2 } from 'lucide-react'
 
@@ -18,13 +19,46 @@ type AnalysisState =
   | { status: 'done'; result: AnalysisResult; mode: AnalysisMode }
   | { status: 'error'; message: string }
 
-export default function AnalyzerPage() {
-  const [mode, setMode] = useState<AnalysisMode>('text')
-  const [text, setText] = useState('')
+// Reads URL params passed from the extension's "More Details" button
+function useExtensionParams() {
+  const params = useSearchParams()
+  const score = params.get('score')
+  const flags = params.get('flags')
+  const reasoning = params.get('reasoning')
+  const type = params.get('type') as AnalysisMode | null
+  const subject = params.get('subject')
+
+  if (score && reasoning) {
+    return {
+      result: {
+        aiProbability: parseInt(score, 10),
+        biasFlags: flags ? flags.split('||').filter(Boolean) : [],
+        reasoning,
+        factCheckRefs: [],
+      } as AnalysisResult,
+      mode: (type ?? 'text') as AnalysisMode,
+      subject: subject ?? '',
+    }
+  }
+  return null
+}
+
+function AnalyzerContent() {
+  const extensionData = useExtensionParams()
+
+  const [mode, setMode] = useState<AnalysisMode>(extensionData?.mode ?? 'text')
+  const [text, setText] = useState(extensionData?.subject ?? '')
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
-  const [state, setState] = useState<AnalysisState>({ status: 'idle' })
+  const [state, setState] = useState<AnalysisState>(
+    extensionData
+      ? { status: 'done', result: extensionData.result, mode: extensionData.mode }
+      : { status: 'idle' }
+  )
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Show a banner when arriving from the extension
+  const fromExtension = !!extensionData
 
   const handleFileSelect = (file: File) => {
     if (!file.type.startsWith('image/')) {
@@ -109,6 +143,14 @@ export default function AnalyzerPage() {
       </section>
 
       <div className="max-w-4xl mx-auto w-full px-4 py-10 space-y-6">
+        {/* Extension source banner */}
+        {fromExtension && (
+          <div className="flex items-center gap-3 px-4 py-3 bg-primary/10 border border-primary/20 rounded-lg text-sm text-primary">
+            <Shield className="w-4 h-4 flex-shrink-0" />
+            <span>Result received from the <strong>Spot the Bot extension</strong>. You can re-analyze or explore further below.</span>
+          </div>
+        )}
+
         {/* Mode selector */}
         <div className="flex gap-2 bg-muted rounded-lg p-1 w-fit">
           {(['text', 'link', 'image'] as AnalysisMode[]).map((m) => {
@@ -394,10 +436,22 @@ function fileToBase64(file: File): Promise<string> {
     const reader = new FileReader()
     reader.onload = () => {
       const result = reader.result as string
-      // Strip the "data:image/jpeg;base64," prefix
       resolve(result.split(',')[1])
     }
     reader.onerror = reject
     reader.readAsDataURL(file)
   })
+}
+
+// Wrap with Suspense because useSearchParams() requires it in Next.js
+export default function AnalyzerPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex-1 flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    }>
+      <AnalyzerContent />
+    </Suspense>
+  )
 }

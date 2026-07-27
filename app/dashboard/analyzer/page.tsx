@@ -7,17 +7,27 @@ import { Shield, Upload, Link2, FileText, X, AlertTriangle, CheckCircle2, Chevro
 import { useAuth } from '@/lib/auth-context'
 import { supabase } from '@/lib/supabase'
 
+interface FactualClaim {
+  claim: string
+  verdict: 'likely true' | 'likely false' | 'unverifiable' | 'misleading'
+  evidence: string
+  confidence: 'high' | 'medium' | 'low'
+}
+
 interface DeepReport {
   originAssessment?: string
   rhetoricalTechniques?: string
-  factualClaims?: string
+  factualClaims?: FactualClaim[] | string
   domainAnalysis?: string
   pathAnalysis?: string
   trustSignals?: string
   anatomicalAnalysis?: string
   lightingAndShadows?: string
+  lightingAnalysis?: string
   textureAndDetail?: string
+  textureAnalysis?: string
   overallVerdict?: string
+  factualityScore?: number
 }
 
 interface AnalysisResult {
@@ -28,7 +38,10 @@ interface AnalysisResult {
   deepReport: DeepReport | null
   contentType?: string
   subject?: string
-  // legacy compat
+  factualityScore?: number | null
+  factualClaims?: FactualClaim[]
+  confidence?: string
+  crossChecks?: any[]
   biasFlags?: string[]
 }
 
@@ -68,22 +81,23 @@ function AnalyzerContent() {
             summary: data.verdict ?? '',
             flags: data.summary_flags ?? [],
             reasoning: data.summary_reason ?? '',
+            factualityScore: data.factuality_score ?? null,
+            factualClaims: data.factual_claims ?? [],
+            confidence: data.confidence,
+            crossChecks: data.cross_checks ?? [],
             deepReport: {
               originAssessment: deep.originAssessment,
               rhetoricalTechniques: deep.rhetoricalTechniques,
-              factualClaims: deep.factualClaims,
               domainAnalysis: deep.domainAnalysis,
               pathAnalysis: deep.pathAnalysis,
               trustSignals: deep.trustSignals,
               anatomicalAnalysis: deep.anatomicalAnalysis,
-              lightingAndShadows: deep.lightingAnalysis,
-              textureAndDetail: deep.textureAnalysis,
+              lightingAnalysis: deep.lightingAnalysis,
+              textureAnalysis: deep.textureAnalysis,
               overallVerdict: deep.overallVerdict,
             },
             contentType: data.content_type,
             subject: data.subject,
-            confidence: data.confidence,
-            crossChecks: data.cross_checks ?? [],
             biasFlags: data.summary_flags ?? [],
           },
           mode: (data.content_type ?? 'text') as AnalysisMode,
@@ -320,7 +334,7 @@ function ResultCard({ result, mode, onClose, fromExtension }: {
 
   const flags = result.flags?.length ? result.flags : (result.biasFlags ?? [])
 
-  // Deep report sections based on content type
+  // Deep report sections based on content type (excludes factualClaims — shown separately)
   const deepSections: { key: keyof DeepReport; label: string }[] = mode === 'link'
     ? [
         { key: 'domainAnalysis', label: 'Domain Analysis' },
@@ -331,16 +345,28 @@ function ResultCard({ result, mode, onClose, fromExtension }: {
     : mode === 'image'
     ? [
         { key: 'anatomicalAnalysis', label: 'Anatomical Analysis' },
-        { key: 'lightingAndShadows', label: 'Lighting & Shadows' },
-        { key: 'textureAndDetail', label: 'Texture & Detail' },
+        { key: 'lightingAnalysis', label: 'Lighting & Shadows' },
+        { key: 'textureAnalysis', label: 'Texture & Detail' },
         { key: 'overallVerdict', label: 'Overall Verdict' },
       ]
     : [
         { key: 'originAssessment', label: 'Origin Assessment (AI vs Human)' },
         { key: 'rhetoricalTechniques', label: 'Rhetorical Techniques' },
-        { key: 'factualClaims', label: 'Factual Claims Assessment' },
         { key: 'overallVerdict', label: 'Overall Verdict' },
       ]
+
+  // Factuality color helpers
+  const fscore = result.factualityScore ?? null
+  const fColor = fscore == null ? '' : fscore >= 60 ? 'text-secondary' : fscore >= 35 ? 'text-accent' : 'text-destructive'
+  const fTrack = fscore == null ? '' : fscore >= 60 ? 'bg-secondary' : fscore >= 35 ? 'bg-accent' : 'bg-destructive'
+  const fBorder = fscore == null ? '' : fscore >= 60 ? 'border-secondary/30 bg-secondary/5' : fscore >= 35 ? 'border-accent/30 bg-accent/5' : 'border-destructive/30 bg-destructive/5'
+
+  const verdictColors: Record<string, string> = {
+    'likely true': 'bg-secondary/10 text-secondary border-secondary/30',
+    'likely false': 'bg-destructive/10 text-destructive border-destructive/30',
+    'unverifiable': 'bg-muted text-muted-foreground border-border',
+    'misleading': 'bg-accent/10 text-accent border-accent/30',
+  }
 
   return (
     <div className="bg-card border border-border rounded-lg overflow-hidden">
@@ -411,6 +437,57 @@ function ResultCard({ result, mode, onClose, fromExtension }: {
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Summary</p>
           <p className="text-sm text-foreground leading-relaxed">{result.reasoning}</p>
         </div>
+
+        {/* Factuality score */}
+        {fscore != null && (
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Factuality Score</p>
+              <span className={`text-2xl font-bold ${fColor}`}>{fscore}%</span>
+            </div>
+            <div className="w-full h-2.5 bg-muted rounded-full overflow-hidden mb-2">
+              <div className={`h-full rounded-full transition-all ${fTrack}`} style={{ width: `${fscore}%` }} />
+            </div>
+            <div className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium ${fBorder}`}>
+              {fscore >= 60
+                ? <CheckCircle2 className="w-4 h-4 text-secondary flex-shrink-0" />
+                : <AlertTriangle className="w-4 h-4 flex-shrink-0 text-accent" />}
+              <span className={fColor}>
+                {fscore >= 60
+                  ? 'Claims appear mostly supported by evidence'
+                  : fscore >= 35
+                  ? 'Some claims are uncertain or unverifiable'
+                  : 'Claims appear unsupported or fabricated'}
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* Factual claims — per-claim evidence */}
+        {result.factualClaims && result.factualClaims.length > 0 && (
+          <div>
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Factual Claims Evidence</p>
+            <div className="space-y-3">
+              {result.factualClaims.map((claim, i) => (
+                <div key={i} className="border border-border rounded-lg overflow-hidden">
+                  <div className={`flex items-center justify-between px-4 py-2 border-b border-border ${verdictColors[claim.verdict] ?? 'bg-muted/20'}`}>
+                    <span className="text-xs font-bold uppercase tracking-wide">
+                      {claim.verdict === 'likely true' ? '✓ Likely True'
+                        : claim.verdict === 'likely false' ? '✗ Likely False'
+                        : claim.verdict === 'misleading' ? '⚠ Misleading'
+                        : '? Unverifiable'}
+                    </span>
+                    <span className="text-xs text-muted-foreground">Confidence: {claim.confidence}</span>
+                  </div>
+                  <div className="px-4 py-3 space-y-2">
+                    <p className="text-sm font-medium text-foreground italic">"{claim.claim}"</p>
+                    <p className="text-xs text-muted-foreground leading-relaxed">{claim.evidence}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Deep report — expandable sections */}
         {result.deepReport && (

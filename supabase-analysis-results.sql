@@ -9,14 +9,16 @@ create table if not exists public.analysis_results (
   analyzed_at     timestamptz default now()
 );
 
--- Add new columns if they don't exist yet
+-- Add factuality columns if they don't exist yet
 alter table public.analysis_results
   add column if not exists verdict        text,
   add column if not exists summary_flags  text[] default '{}',
   add column if not exists summary_reason text,
   add column if not exists deep_analysis  jsonb,
   add column if not exists cross_checks   jsonb,
-  add column if not exists confidence     text default 'medium';
+  add column if not exists confidence     text default 'medium',
+  add column if not exists factuality_score integer,
+  add column if not exists factual_claims  jsonb;
 
 -- Enable RLS
 alter table public.analysis_results enable row level security;

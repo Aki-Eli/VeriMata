@@ -3,10 +3,16 @@
 import { useAuth } from '@/lib/auth-context'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import { Trophy, Zap, Target } from 'lucide-react'
+import { Trophy, Zap, Target, Medal } from 'lucide-react'
 import type { Database } from '@/lib/supabase'
 
 type LeaderboardEntry = Database['public']['Tables']['leaderboard_cache']['Row']
+
+const SORT_OPTIONS = [
+  { key: 'xp', label: 'Total XP' },
+  { key: 'accuracy', label: 'Accuracy' },
+  { key: 'streak', label: 'Streak' },
+] as const
 
 export default function LeaderboardPage() {
   const { profile } = useAuth()
@@ -87,22 +93,26 @@ export default function LeaderboardPage() {
     return (
       <div className="flex-1 flex items-center justify-center">
         <div className="text-center">
-          <div className="text-2xl font-bold text-primary mb-2">Loading Leaderboard...</div>
+          <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto mb-3" />
+          <div className="text-lg font-semibold text-muted-foreground">Loading leaderboard…</div>
         </div>
       </div>
     )
   }
 
   const topEntries = entries.slice(0, 10)
+  const podium = topEntries.slice(0, 3)
+  const rest = topEntries.slice(3)
 
   return (
     <div className="flex-1 flex flex-col">
       {/* Header */}
-      <section className="bg-gradient-to-r from-secondary/10 to-accent/10 border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 py-12">
+      <section className="relative border-b border-border overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-secondary/15 via-transparent to-accent/10" />
+        <div className="relative max-w-7xl mx-auto px-4 py-12">
           <div className="flex items-center gap-3 mb-2">
             <Trophy className="w-8 h-8 text-secondary" />
-            <h1 className="text-4xl font-bold text-foreground">Leaderboard</h1>
+            <h1 className="font-display text-4xl font-bold text-foreground">Leaderboard</h1>
           </div>
           <p className="text-muted-foreground text-lg">Top AI detectives compete here</p>
         </div>
@@ -111,71 +121,81 @@ export default function LeaderboardPage() {
       <div className="max-w-7xl mx-auto w-full px-4 py-12">
         {/* Your Rank Card */}
         {userRank && (
-          <div className="mb-12 bg-gradient-to-r from-primary/20 to-secondary/20 border border-primary/30 rounded-lg p-6">
+          <div className="mb-12 hud-card glow-primary rounded-2xl p-6">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div>
                 <p className="text-muted-foreground text-sm mb-1">Your Rank</p>
-                <p className="text-4xl font-bold text-primary">{userRank.rank}</p>
+                <p className="font-hud text-4xl font-bold text-primary">#{userRank.rank}</p>
               </div>
               <div>
                 <p className="text-muted-foreground text-sm mb-1">Total XP</p>
-                <p className="text-4xl font-bold text-secondary flex items-center gap-2">
+                <p className="font-hud text-4xl font-bold text-secondary flex items-center gap-2">
                   <Zap className="w-6 h-6" />
                   {userRank.total_xp}
                 </p>
               </div>
               <div>
                 <p className="text-muted-foreground text-sm mb-1">Accuracy</p>
-                <p className="text-4xl font-bold text-accent">{userRank.accuracy_percentage}%</p>
+                <p className="font-hud text-4xl font-bold text-accent">{userRank.accuracy_percentage}%</p>
               </div>
               <div>
                 <p className="text-muted-foreground text-sm mb-1">Streak</p>
-                <p className="text-4xl font-bold text-foreground">{userRank.current_streak}</p>
+                <p className="font-hud text-4xl font-bold text-foreground">{userRank.current_streak}</p>
               </div>
             </div>
           </div>
         )}
 
+        {/* Podium */}
+        {podium.length > 0 && (
+          <div className="mb-12 grid grid-cols-3 gap-3 md:gap-6 items-end max-w-3xl mx-auto">
+            {[podium[1], podium[0], podium[2]].map((entry, i) => {
+              if (!entry) return <div key={i} />
+              const place = i === 1 ? 1 : i === 0 ? 2 : 3
+              const heights = { 1: 'h-40 md:h-48', 2: 'h-32 md:h-36', 3: 'h-24 md:h-28' } as const
+              const medalColor = { 1: 'text-accent', 2: 'text-muted-foreground', 3: 'text-[#c9803e]' } as const
+              return (
+                <div key={entry.user_id} className="pop-in flex flex-col items-center" style={{ animationDelay: `${i * 100}ms` }}>
+                  <div className={`w-14 h-14 md:w-16 md:h-16 rounded-full bg-gradient-to-br from-primary to-secondary p-[2px] mb-2 ${place === 1 ? 'glow-accent' : ''}`}>
+                    <div className="w-full h-full rounded-full bg-card flex items-center justify-center font-bold text-lg text-foreground">
+                      {entry.username[0]?.toUpperCase()}
+                    </div>
+                  </div>
+                  <Medal className={`w-5 h-5 mb-1 ${medalColor[place]}`} />
+                  <p className="font-semibold text-sm text-foreground text-center truncate max-w-[100px]">{entry.username}</p>
+                  <p className="font-hud text-xs text-accent mb-2">{entry.total_xp} XP</p>
+                  <div className={`w-full ${heights[place]} hud-card rounded-t-2xl flex items-start justify-center pt-3`}>
+                    <span className="font-display font-bold text-2xl text-muted-foreground">#{place}</span>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+
         {/* Sort Buttons */}
-        <div className="flex gap-2 mb-8">
-          <button
-            onClick={() => setSortBy('xp')}
-            className={`px-4 py-2 rounded-lg font-medium transition ${
-              sortBy === 'xp'
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-muted text-muted-foreground hover:bg-muted/80'
-            }`}
-          >
-            Total XP
-          </button>
-          <button
-            onClick={() => setSortBy('accuracy')}
-            className={`px-4 py-2 rounded-lg font-medium transition ${
-              sortBy === 'accuracy'
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-muted text-muted-foreground hover:bg-muted/80'
-            }`}
-          >
-            Accuracy
-          </button>
-          <button
-            onClick={() => setSortBy('streak')}
-            className={`px-4 py-2 rounded-lg font-medium transition ${
-              sortBy === 'streak'
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-muted text-muted-foreground hover:bg-muted/80'
-            }`}
-          >
-            Streak
-          </button>
+        <div className="flex gap-2 mb-6">
+          {SORT_OPTIONS.map((opt) => (
+            <button
+              key={opt.key}
+              onClick={() => setSortBy(opt.key)}
+              className={`press-scale px-4 py-2 rounded-full font-medium text-sm transition-all ${
+                sortBy === opt.key
+                  ? 'bg-primary text-primary-foreground glow-primary'
+                  : 'bg-muted text-muted-foreground hover:bg-muted/70'
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
         </div>
 
         {/* Leaderboard Table */}
-        <div className="bg-card border border-border rounded-lg overflow-hidden">
+        <div className="hud-card rounded-2xl overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-border bg-muted/50">
+                <tr className="border-b border-border bg-muted/30">
                   <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">#</th>
                   <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">Name</th>
                   <th className="px-6 py-3 text-right text-sm font-semibold text-foreground">
@@ -194,24 +214,22 @@ export default function LeaderboardPage() {
                 </tr>
               </thead>
               <tbody>
-                {topEntries.map((entry, idx) => (
+                {rest.map((entry, idx) => (
                   <tr
                     key={entry.user_id}
-                    className={`border-b border-border transition ${
+                    className={`rise-in border-b border-border last:border-0 transition ${
                       entry.user_id === profile?.id
-                        ? 'bg-primary/5 hover:bg-primary/10'
-                        : 'hover:bg-muted/50'
+                        ? 'bg-primary/10 hover:bg-primary/15'
+                        : 'hover:bg-muted/40'
                     }`}
+                    style={{ animationDelay: `${idx * 40}ms` }}
                   >
                     <td className="px-6 py-4">
-                      {idx === 0 && <Trophy className="w-5 h-5 text-yellow-500" />}
-                      {idx === 1 && <Trophy className="w-5 h-5 text-gray-400" />}
-                      {idx === 2 && <Trophy className="w-5 h-5 text-orange-600" />}
-                      {idx > 2 && <span className="text-muted-foreground font-semibold">{idx + 1}</span>}
+                      <span className="font-hud text-muted-foreground font-semibold">{entry.rank}</span>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-semibold text-sm">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-semibold text-sm">
                           {entry.username[0]?.toUpperCase()}
                         </div>
                         <div className="flex flex-col">
@@ -223,16 +241,16 @@ export default function LeaderboardPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <span className="font-semibold text-foreground flex items-center justify-end gap-2">
+                      <span className="font-hud font-semibold text-foreground flex items-center justify-end gap-2">
                         <Zap className="w-4 h-4 text-accent" />
                         {entry.total_xp}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <span className="font-semibold text-foreground">{entry.accuracy_percentage}%</span>
+                      <span className="font-hud font-semibold text-foreground">{entry.accuracy_percentage}%</span>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <span className="text-muted-foreground">{entry.quizzes_completed}</span>
+                      <span className="font-hud text-muted-foreground">{entry.quizzes_completed}</span>
                     </td>
                   </tr>
                 ))}

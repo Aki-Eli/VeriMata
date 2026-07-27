@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase'
 import { checkAndAwardBadges } from '@/lib/badges'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { Zap, CheckCircle, XCircle, ImageIcon, FileText } from 'lucide-react'
+import { Zap, CheckCircle, XCircle, ImageIcon, FileText, Search } from 'lucide-react'
 import type { GeneratedQuestion } from '@/lib/auth-context'
 
 export default function ArenaPage() {
@@ -19,6 +19,8 @@ export default function ArenaPage() {
   const [showExplanation, setShowExplanation] = useState(false)
   const [lastAnswerCorrect, setLastAnswerCorrect] = useState(false)
   const [results, setResults] = useState<{ correct: number; total: number; accuracy: number; xp: number } | null>(null)
+  const [runStreak, setRunStreak] = useState(0)
+  const [xpPopup, setXpPopup] = useState<number | null>(null)
   // Use a ref for scores to avoid stale closure issues on last question
   const scoresRef = useRef<boolean[]>([])
 
@@ -46,6 +48,11 @@ export default function ArenaPage() {
     const xpEarned = isCorrect ? 10 : 0
     setLastAnswerCorrect(isCorrect)
     scoresRef.current = [...scoresRef.current, isCorrect]
+    setRunStreak((prev) => (isCorrect ? prev + 1 : 0))
+    if (isCorrect) {
+      setXpPopup(xpEarned)
+      setTimeout(() => setXpPopup(null), 1100)
+    }
 
     // Save to Supabase
     if (user?.id) {
@@ -137,58 +144,93 @@ export default function ArenaPage() {
 
   // ── Results (checked BEFORE loading so refreshQuiz doesn't clobber the screen) ──
   if (results) {
-    return (
-      <div className="flex-1 flex items-center justify-center bg-gradient-to-b from-primary/5 to-background p-4">
-        <div className="max-w-2xl w-full">
-          <div className="bg-card border border-border rounded-lg p-8 text-center">
-            <h1 className="text-4xl font-bold text-foreground mb-2">Quiz Complete!</h1>
+    const ringCircumference = 2 * Math.PI * 54
+    const ringOffset = ringCircumference * (1 - results.accuracy / 100)
+    const isPerfect = results.accuracy === 100
 
-            <div className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-lg p-8 my-8">
-              <div className="grid grid-cols-2 gap-8 mb-8">
-                <div>
-                  <p className="text-muted-foreground text-sm mb-2">Accuracy</p>
-                  <p className="text-4xl font-bold text-primary">{results.accuracy}%</p>
-                  <p className="text-muted-foreground text-sm mt-2">
-                    {results.correct}/{results.total} correct
-                  </p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground text-sm mb-2">XP Earned</p>
-                  <p className="text-4xl font-bold text-accent flex items-center justify-center gap-2">
-                    <Zap className="w-8 h-8" />
-                    {results.xp}
-                  </p>
+    return (
+      <div className="relative flex-1 flex items-center justify-center bg-gradient-to-b from-primary/10 to-background p-4 overflow-hidden">
+        {isPerfect && (
+          <div className="pointer-events-none absolute inset-0">
+            {Array.from({ length: 24 }).map((_, i) => (
+              <span
+                key={i}
+                className="confetti-piece absolute top-0 block w-2 h-3 rounded-sm"
+                style={{
+                  left: `${(i * 41) % 100}%`,
+                  backgroundColor: ['var(--primary)', 'var(--secondary)', 'var(--accent)'][i % 3],
+                  animationDuration: `${2 + (i % 5) * 0.4}s`,
+                  animationDelay: `${(i % 6) * 0.15}s`,
+                }}
+              />
+            ))}
+          </div>
+        )}
+
+        <div className="relative max-w-2xl w-full">
+          <div className="pop-in hud-card glow-primary rounded-3xl p-8 text-center">
+            <h1 className="font-display text-4xl font-bold text-foreground mb-2">Quiz Complete!</h1>
+
+            <div className="rounded-2xl p-8 my-8 flex flex-col md:flex-row items-center justify-center gap-10">
+              <div className="relative w-36 h-36 shrink-0">
+                <svg viewBox="0 0 120 120" className="w-36 h-36 -rotate-90">
+                  <circle cx="60" cy="60" r="54" fill="none" stroke="var(--muted)" strokeWidth="8" />
+                  <circle
+                    cx="60" cy="60" r="54" fill="none"
+                    stroke="url(#resultsGradient)" strokeWidth="8" strokeLinecap="round"
+                    strokeDasharray={ringCircumference}
+                    strokeDashoffset={ringOffset}
+                    className="transition-all duration-1000 ease-out"
+                  />
+                  <defs>
+                    <linearGradient id="resultsGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="var(--primary)" />
+                      <stop offset="100%" stopColor="var(--secondary)" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <span className="font-hud text-3xl font-bold text-foreground">{results.accuracy}%</span>
+                  <span className="text-xs text-muted-foreground">{results.correct}/{results.total} correct</span>
                 </div>
               </div>
 
-              {results.accuracy === 100 && (
-                <div className="mb-6 p-4 bg-secondary/20 border border-secondary rounded-lg text-secondary">
-                  <p className="font-semibold">Perfect score! You&apos;re a bot detective! 🎉</p>
-                </div>
-              )}
-              {results.accuracy >= 80 && results.accuracy < 100 && (
-                <div className="mb-6 p-4 bg-secondary/20 border border-secondary rounded-lg text-secondary">
-                  <p className="font-semibold">Outstanding! You&apos;re crushing it!</p>
-                </div>
-              )}
-              {results.accuracy >= 60 && results.accuracy < 80 && (
-                <div className="mb-6 p-4 bg-accent/20 border border-accent rounded-lg text-accent">
-                  <p className="font-semibold">Good job! Keep practicing to improve!</p>
-                </div>
-              )}
-              {results.accuracy < 60 && (
-                <div className="mb-6 p-4 bg-muted border border-border rounded-lg text-muted-foreground">
-                  <p className="font-semibold">Keep going — spotting AI takes practice!</p>
-                </div>
-              )}
+              <div>
+                <p className="text-muted-foreground text-sm mb-2">XP Earned</p>
+                <p className="font-hud text-5xl font-bold text-accent flex items-center gap-2">
+                  <Zap className="w-9 h-9" />
+                  +{results.xp}
+                </p>
+              </div>
             </div>
+
+            {results.accuracy === 100 && (
+              <div className="mb-6 p-4 bg-secondary/15 border border-secondary/40 rounded-xl text-secondary">
+                <p className="font-semibold">Perfect score! You&apos;re a bot detective! 🎉</p>
+              </div>
+            )}
+            {results.accuracy >= 80 && results.accuracy < 100 && (
+              <div className="mb-6 p-4 bg-secondary/15 border border-secondary/40 rounded-xl text-secondary">
+                <p className="font-semibold">Outstanding! You&apos;re crushing it!</p>
+              </div>
+            )}
+            {results.accuracy >= 60 && results.accuracy < 80 && (
+              <div className="mb-6 p-4 bg-accent/15 border border-accent/40 rounded-xl text-accent">
+                <p className="font-semibold">Good job! Keep practicing to improve!</p>
+              </div>
+            )}
+            {results.accuracy < 60 && (
+              <div className="mb-6 p-4 bg-muted border border-border rounded-xl text-muted-foreground">
+                <p className="font-semibold">Keep going — spotting AI takes practice!</p>
+              </div>
+            )}
 
             <div className="flex gap-3">
               <Link href="/dashboard" className="flex-1">
-                <Button className="bg-muted text-foreground w-full">Back to Dashboard</Button>
+                <Button variant="outline" className="w-full">Back to Dashboard</Button>
               </Link>
               <Button
-                className="flex-1 bg-primary text-primary-foreground"
+                className="flex-1"
                 onClick={() => {
                   setResults(null)
                   setReady(false)
@@ -196,6 +238,7 @@ export default function ArenaPage() {
                   setSelectedAnswer(null)
                   setShowExplanation(false)
                   setCurrentIndex(0)
+                  setRunStreak(0)
                 }}
                 disabled={quizLoading}
               >
@@ -217,14 +260,16 @@ export default function ArenaPage() {
             <>
               <div className="text-2xl font-bold text-destructive mb-2">Generation Failed</div>
               <p className="text-muted-foreground mb-4">{quizError}</p>
-              <Button onClick={() => refreshQuiz()} className="bg-primary text-primary-foreground">
-                Try Again
-              </Button>
+              <Button onClick={() => refreshQuiz()}>Try Again</Button>
             </>
           ) : (
             <>
-              <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-              <div className="text-xl font-bold text-primary mb-2">Generating your quiz...</div>
+              <div className="relative w-20 h-20 mx-auto mb-5">
+                <div className="absolute inset-0 rounded-full border-4 border-primary/20" />
+                <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-primary animate-spin" />
+                <Search className="absolute inset-0 m-auto w-8 h-8 text-primary" />
+              </div>
+              <div className="font-display text-xl font-bold text-primary mb-2">Gathering today&apos;s clues…</div>
               <p className="text-muted-foreground text-sm">Powered by Gemini AI &amp; Pollinations</p>
             </>
           )}
@@ -240,7 +285,7 @@ export default function ArenaPage() {
         <div className="text-center">
           <div className="text-2xl font-bold text-primary mb-2">No Questions Generated</div>
           <Link href="/dashboard">
-            <Button className="bg-primary text-primary-foreground">Back to Dashboard</Button>
+            <Button>Back to Dashboard</Button>
           </Link>
         </div>
       </div>
@@ -255,7 +300,7 @@ export default function ArenaPage() {
   return (
     <div className="flex-1 flex flex-col">
       {/* Progress Bar */}
-      <div className="border-b border-border bg-card p-4">
+      <div className="border-b border-border bg-card/60 backdrop-blur-sm p-4 sticky top-[57px] z-20">
         <div className="max-w-5xl mx-auto">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
@@ -263,31 +308,53 @@ export default function ArenaPage() {
                 Question {currentIndex + 1} of {questions.length}
               </p>
               <span className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
-                isImageQuestion ? 'bg-accent/20 text-accent' : 'bg-secondary/20 text-secondary'
+                isImageQuestion ? 'bg-accent/15 text-accent' : 'bg-secondary/15 text-secondary'
               }`}>
                 {isImageQuestion ? <ImageIcon className="w-3 h-3" /> : <FileText className="w-3 h-3" />}
                 {isImageQuestion ? 'Image' : 'Text'}
               </span>
+              {runStreak > 1 && (
+                <span className="pop-in flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold bg-accent/15 text-accent">
+                  🔥 {runStreak} in a row
+                </span>
+              )}
             </div>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm font-hud text-muted-foreground">
               {Math.round(((currentIndex + 1) / questions.length) * 100)}%
             </p>
           </div>
-          <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
-            <div
-              className="h-full bg-gradient-to-r from-primary to-secondary transition-all duration-500"
-              style={{ width: `${((currentIndex + 1) / questions.length) * 100}%` }}
-            />
+          {/* Segmented HP-style progress bar */}
+          <div className="flex gap-1.5">
+            {questions.map((_, i) => (
+              <div key={i} className="flex-1 h-2.5 rounded-full bg-muted overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all duration-500 ${
+                    i < currentIndex
+                      ? scoresRef.current[i]
+                        ? 'bg-secondary w-full'
+                        : 'bg-destructive w-full'
+                      : i === currentIndex
+                        ? 'bg-gradient-to-r from-primary to-secondary w-full'
+                        : 'w-0'
+                  }`}
+                />
+              </div>
+            ))}
           </div>
         </div>
       </div>
 
       {/* Question */}
-      <div className="flex-1 flex items-start justify-center p-4 py-8">
+      <div className="relative flex-1 flex items-start justify-center p-4 py-8">
+        {xpPopup !== null && (
+          <div className="float-up pointer-events-none absolute top-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1 font-hud text-2xl font-bold text-accent">
+            <Zap className="w-6 h-6" /> +{xpPopup} XP
+          </div>
+        )}
         <div className="max-w-5xl w-full">
           <div className="mb-6">
             <p className="text-sm text-muted-foreground mb-1">Topic: {currentQuestion.topic}</p>
-            <h2 className="text-2xl md:text-3xl font-bold text-foreground">
+            <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground">
               Which {isImageQuestion ? 'image' : 'text'} is AI-generated?
             </h2>
           </div>
@@ -300,38 +367,38 @@ export default function ArenaPage() {
               const isCorrectOption = option === currentQuestion.correct_answer
               const borderClass = showExplanation
                 ? isCorrectOption
-                  ? 'border-green-500 bg-green-500/5'
+                  ? 'border-secondary bg-secondary/5 glow-secondary'
                   : isSelected && !isCorrectOption
-                    ? 'border-red-500 bg-red-500/5'
-                    : 'border-border opacity-60'
+                    ? 'border-destructive bg-destructive/5 glow-destructive'
+                    : 'border-border opacity-50'
                 : isSelected
-                  ? 'border-primary bg-primary/5'
+                  ? 'border-primary bg-primary/5 glow-primary'
                   : 'border-border hover:border-primary/50'
 
               return (
                 <div
                   key={option}
-                  className={`cursor-pointer transition-all ${showExplanation || submitting ? 'pointer-events-none' : ''}`}
+                  className={`hover-lift press-scale cursor-pointer transition-all ${showExplanation || submitting ? 'pointer-events-none' : ''}`}
                   onClick={() => setSelectedAnswer(option)}
                 >
-                  <div className={`bg-card border-2 rounded-lg p-5 transition-all h-full flex flex-col ${borderClass}`}>
+                  <div className={`bg-card border-2 rounded-2xl p-5 transition-all h-full flex flex-col ${borderClass}`}>
                     <div className="flex items-center justify-between mb-4">
-                      <span className="px-3 py-1 rounded-full bg-muted text-muted-foreground text-sm font-semibold">
+                      <span className="px-3 py-1 rounded-full bg-muted text-muted-foreground text-sm font-semibold font-hud">
                         OPTION {option.toUpperCase()}
                       </span>
-                      {showExplanation && isCorrectOption && <CheckCircle className="w-6 h-6 text-green-500" />}
-                      {showExplanation && isSelected && !isCorrectOption && <XCircle className="w-6 h-6 text-red-500" />}
+                      {showExplanation && isCorrectOption && <CheckCircle className="w-6 h-6 text-secondary" />}
+                      {showExplanation && isSelected && !isCorrectOption && <XCircle className="w-6 h-6 text-destructive" />}
                       {!showExplanation && isSelected && <CheckCircle className="w-6 h-6 text-primary" />}
                     </div>
 
                     {isImageQuestion ? (
-                      <div className="flex-1 rounded-lg overflow-hidden bg-muted min-h-[220px]">
+                      <div className="flex-1 rounded-xl overflow-hidden bg-muted min-h-[220px]">
                         {content ? (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img
                             src={content.startsWith('data:') ? content : `/api/proxy-image?url=${encodeURIComponent(content)}`}
                             alt={`Option ${option.toUpperCase()}`}
-                            className="w-full h-full object-cover rounded-lg"
+                            className="w-full h-full object-cover rounded-xl"
                             style={{ minHeight: 220 }}
                             onError={(e) => {
                               const el = e.target as HTMLImageElement
@@ -358,14 +425,14 @@ export default function ArenaPage() {
 
           {/* Explanation panel */}
           {showExplanation && (
-            <div className={`mt-6 p-5 rounded-lg border ${
-              lastAnswerCorrect ? 'bg-green-500/10 border-green-500/40' : 'bg-red-500/10 border-red-500/40'
+            <div className={`pop-in mt-6 p-5 rounded-2xl border ${
+              lastAnswerCorrect ? 'bg-secondary/10 border-secondary/40' : 'bg-destructive/10 border-destructive/40'
             }`}>
               <div className="flex items-center gap-2 mb-3">
                 {lastAnswerCorrect
-                  ? <CheckCircle className="w-5 h-5 text-green-500" />
-                  : <XCircle className="w-5 h-5 text-red-500" />}
-                <span className={`font-bold text-lg ${lastAnswerCorrect ? 'text-green-600' : 'text-red-600'}`}>
+                  ? <CheckCircle className="w-5 h-5 text-secondary" />
+                  : <XCircle className="w-5 h-5 text-destructive" />}
+                <span className={`font-display font-bold text-lg ${lastAnswerCorrect ? 'text-secondary' : 'text-destructive'}`}>
                   {lastAnswerCorrect ? 'Correct! +10 XP' : 'Not quite!'}
                 </span>
               </div>
@@ -378,7 +445,7 @@ export default function ArenaPage() {
           <div className="mt-6">
             {!showExplanation ? (
               <Button
-                className="w-full bg-primary text-primary-foreground hover:bg-primary/90 py-3 text-lg font-semibold disabled:opacity-40"
+                className="w-full py-6 text-lg"
                 disabled={!selectedAnswer || submitting}
                 onClick={handleConfirm}
               >
@@ -386,7 +453,7 @@ export default function ArenaPage() {
               </Button>
             ) : (
               <Button
-                className="w-full bg-primary text-primary-foreground hover:bg-primary/90 py-3 text-lg font-semibold"
+                className="w-full py-6 text-lg"
                 onClick={handleNext}
               >
                 {currentIndex < questions.length - 1 ? 'Next Question →' : 'See Results'}

@@ -21,8 +21,12 @@ export default function Page() {
   return (
     <main className="min-h-screen flex items-center justify-center bg-background">
       <div className="text-center">
-        <div className="text-4xl font-bold text-primary mb-4">Spot the Bot</div>
-        <p className="text-muted-foreground">Loading...</p>
+        <div className="relative w-14 h-14 mx-auto mb-5">
+          <div className="absolute inset-0 rounded-full border-4 border-primary/20" />
+          <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-primary animate-spin" />
+        </div>
+        <div className="font-display text-3xl font-bold text-gradient mb-2">Spot the Bot</div>
+        <p className="text-muted-foreground text-sm">Loading...</p>
       </div>
     </main>
   )

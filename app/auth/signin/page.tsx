@@ -30,11 +30,15 @@ export default function SignInPage() {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-background p-4">
-      <div className="w-full max-w-md">
-        <div className="bg-card rounded-lg shadow-lg p-8 border border-border">
+    <main className="relative min-h-screen flex items-center justify-center bg-background p-4 overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/15 via-transparent to-secondary/10" />
+      <div className="pop-in relative w-full max-w-md">
+        <div className="hud-card glow-primary rounded-3xl shadow-2xl p-8">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-primary mb-2">Spot the Bot</h1>
+            <div className="w-12 h-12 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-xl glow-primary">
+              🔍
+            </div>
+            <h1 className="font-display text-3xl font-bold text-gradient mb-2">Spot the Bot</h1>
             <p className="text-muted-foreground">Master AI Detection in 5 Minutes Daily</p>
           </div>
 
@@ -45,7 +49,7 @@ export default function SignInPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background text-foreground"
+                className="w-full px-4 py-2.5 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary bg-background text-foreground transition"
                 placeholder="you@example.com"
                 required
               />
@@ -57,18 +61,18 @@ export default function SignInPage() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background text-foreground"
+                className="w-full px-4 py-2.5 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary bg-background text-foreground transition"
                 placeholder="••••••••"
                 required
               />
             </div>
 
-            {error && <div className="p-3 bg-destructive/10 border border-destructive text-destructive rounded-lg text-sm">{error}</div>}
+            {error && <div className="p-3 bg-destructive/10 border border-destructive/40 text-destructive rounded-xl text-sm">{error}</div>}
 
             <Button
               type="submit"
               disabled={loading}
-              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+              className="w-full py-5 text-base"
             >
               {loading ? 'Signing in...' : 'Sign In'}
             </Button>

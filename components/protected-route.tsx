@@ -18,7 +18,8 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
-          <div className="text-4xl font-bold text-primary mb-4">Spot the Bot</div>
+          <img src="/logo.jpg" alt="VeriMata" className="w-16 h-16 mx-auto mb-4 rounded-2xl object-contain" />
+          <div className="text-2xl font-bold text-primary mb-2">VeriMata</div>
           <p className="text-muted-foreground">Loading...</p>
         </div>
       </div>

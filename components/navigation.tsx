@@ -40,12 +40,12 @@ export function Navigation() {
     <nav className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur-xl">
       <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
         <Link href="/dashboard" className="flex items-center gap-2.5 group shrink-0">
-          <div className="relative w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-lg glow-primary transition-transform group-hover:scale-105 group-hover:-rotate-3">
-            <span aria-hidden>🔍</span>
+          <div className="relative w-9 h-9 rounded-xl overflow-hidden border-2 border-primary/30 transition-transform group-hover:scale-105 group-hover:-rotate-3">
+            <img src="/logo.jpg" alt="VeriMata" className="w-full h-full object-contain" />
           </div>
           <div className="text-lg font-display font-bold tracking-tight leading-none">
-            <span className="text-gradient">Spot</span>
-            <span className="text-foreground"> the Bot</span>
+            <span className="text-gradient">Veri</span>
+            <span className="text-foreground">Mata</span>
           </div>
         </Link>
 

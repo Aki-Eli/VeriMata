@@ -47,7 +47,7 @@ export default function FlagsPage() {
           <p className="text-muted-foreground text-lg">
             Posts flagged as suspicious by people using the{' '}
             <Link href="/dashboard/extension" className="text-primary underline underline-offset-4">
-              Spot the Bot browser extension
+              VeriMata browser extension
             </Link>
             , newest first.
           </p>

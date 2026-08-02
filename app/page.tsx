@@ -25,7 +25,7 @@ export default function Page() {
           <div className="absolute inset-0 rounded-full border-4 border-primary/20" />
           <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-primary animate-spin" />
         </div>
-        <div className="font-display text-3xl font-bold text-gradient mb-2">Spot the Bot</div>
+        <div className="font-display text-3xl font-bold text-gradient mb-2">VeriMata</div>
         <p className="text-muted-foreground text-sm">Loading...</p>
       </div>
     </main>

@@ -69,10 +69,8 @@ export default function SignUpPage() {
       <div className="pop-in relative w-full max-w-md">
         <div className="hud-card glow-primary rounded-3xl shadow-2xl p-8">
           <div className="text-center mb-8">
-            <div className="w-12 h-12 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-xl glow-primary">
-              🔍
-            </div>
-            <h1 className="font-display text-3xl font-bold text-gradient mb-2">Join Spot the Bot</h1>
+            <img src="/logo.jpg" alt="VeriMata" className="w-16 h-16 mx-auto mb-4 rounded-2xl object-contain" />
+            <h1 className="font-display text-3xl font-bold text-gradient mb-2">Join VeriMata</h1>
             <p className="text-muted-foreground">Start your AI detection journey</p>
           </div>
 

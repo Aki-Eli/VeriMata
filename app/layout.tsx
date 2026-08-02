@@ -23,26 +23,18 @@ const spaceGrotesk = Space_Grotesk({
 })
 
 export const metadata: Metadata = {
-  title: 'Spot the Bot - Master AI Detection',
+  title: 'VeriMata - AI Content Detection',
   description: 'Train your AI detection skills with daily quizzes. Learn to spot AI-generated content and misinformation in 5 minutes a day.',
   generator: 'v0.app',
   keywords: ['AI detection', 'misinformation', 'media literacy', 'AI training', 'game'],
-  icons: {
+    icons: {
     icon: [
-      {
-        url: '/icon-light-32x32.png',
-        media: '(prefers-color-scheme: light)',
-      },
-      {
-        url: '/icon-dark-32x32.png',
-        media: '(prefers-color-scheme: dark)',
-      },
-      {
-        url: '/icon.svg',
-        type: 'image/svg+xml',
-      },
+      { url: '/logo.jpg', type: 'image/jpeg' },
+      { url: '/icon-light-32x32.png', media: '(prefers-color-scheme: light)' },
+      { url: '/icon-dark-32x32.png', media: '(prefers-color-scheme: dark)' },
+      { url: '/icon.svg', type: 'image/svg+xml' },
     ],
-    apple: '/apple-icon.png',
+    apple: '/logo.jpg',
   },
 }
 

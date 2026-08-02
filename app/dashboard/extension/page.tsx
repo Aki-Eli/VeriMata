@@ -10,11 +10,11 @@ export default function ExtensionPage() {
         <div className="relative max-w-7xl mx-auto px-4 py-12">
           <div className="flex items-center gap-3 mb-2">
             <Puzzle className="w-8 h-8 text-primary" />
-            <h1 className="font-display text-4xl font-bold text-foreground">Spot the Bot, everywhere</h1>
+            <h1 className="font-display text-4xl font-bold text-foreground">VeriMata Extension</h1>
           </div>
           <p className="text-muted-foreground text-lg max-w-2xl">
-            You&apos;ve trained your eye on the daily quiz — now take it with you. The Spot the Bot
-            browser extension scans real posts on Facebook for you, right where you&apos;re scrolling.
+            You&apos;ve trained your eye on the daily quiz — now take it with you. The VeriMata
+            browser extension analyzes real content anywhere on the web, right where you&apos;re browsing.
           </p>
         </div>
       </section>
@@ -47,7 +47,7 @@ export default function ExtensionPage() {
               <MousePointerClick className="w-6 h-6 text-primary mb-2" />
               <p className="text-sm text-foreground font-medium mb-1">Right-click to analyze</p>
               <p className="text-xs text-muted-foreground">
-                Highlight any post text on Facebook and choose &quot;Analyze with Spot the Bot.&quot;
+                Highlight any text on a webpage and choose &quot;Analyze with VeriMata.&quot;
               </p>
             </div>
             <div className="hud-card hover-lift rounded-2xl p-4">

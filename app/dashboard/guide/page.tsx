@@ -41,7 +41,7 @@ const guides = [
   },
   {
     icon: BookOpen,
-    title: 'How Spot the Bot Works',
+    title: 'How VeriMata Works',
     description: 'Master the game mechanics and scoring system',
     points: [
       '5 questions per daily quiz',

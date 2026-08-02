@@ -30,7 +30,7 @@ export default function ExtensionPage() {
             </p>
           </div>
           <a
-            href="/downloads/spot-the-bot-extension.zip"
+            href="/downloads/VeriMata.zip"
             download
             className="press-scale shrink-0 inline-flex items-center gap-2 bg-primary text-primary-foreground font-semibold px-5 py-3 rounded-xl glow-primary hover:brightness-110 transition-all"
           >

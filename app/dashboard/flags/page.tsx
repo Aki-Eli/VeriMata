@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { flagsSupabase, type FlagReport } from '@/lib/flags-supabase'
 import {
   ShieldAlert, RefreshCw, ExternalLink, Puzzle,
-  Users, ChevronDown, ChevronUp, Flag, Loader2, CheckCircle,
+  Users, ChevronDown, ChevronUp, Flag, Loader2,
 } from 'lucide-react'
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -31,16 +31,18 @@ const FLAG_CATEGORIES = [
 
 function FlagSubmitPanel({
   postUrl,
-  onSubmitted,
+  onDone,
 }: {
   postUrl: string
-  onSubmitted: () => void
+  onDone: () => void
 }) {
   const [category, setCategory] = useState('')
   const [reason, setReason]     = useState('')
   const [submitting, setSubmitting] = useState(false)
-  const [done, setDone]         = useState(false)
   const [error, setError]       = useState('')
+  const [urlExpanded, setUrlExpanded] = useState(false)
+
+  const truncatedUrl = postUrl.length > 60 ? postUrl.slice(0, 60) + '…' : postUrl
 
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault()
@@ -56,12 +58,9 @@ function FlagSubmitPanel({
     if (err) {
       setError(err.message)
     } else {
-      setDone(true)
-      onSubmitted()
+      onDone()
     }
-  }, [category, reason, postUrl, onSubmitted])
-
-  if (done) return null // parent shows the success message
+  }, [category, reason, postUrl, onDone])
 
   return (
     <div className="hud-card rounded-2xl p-5 border-2 border-destructive/30 bg-destructive/5">
@@ -69,14 +68,17 @@ function FlagSubmitPanel({
         <Flag className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
         <div className="min-w-0">
           <p className="font-bold text-foreground text-sm mb-1">Flag this content</p>
-          <a
-            href={postUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="text-xs text-primary hover:underline break-all"
-          >
-            {postUrl}
-          </a>
+          <p className="text-xs text-muted-foreground break-all">
+            {urlExpanded ? postUrl : truncatedUrl}
+            {postUrl.length > 60 && (
+              <button
+                onClick={() => setUrlExpanded(!urlExpanded)}
+                className="ml-1 text-primary hover:underline font-medium"
+              >
+                {urlExpanded ? 'show less' : 'show more'}
+              </button>
+            )}
+          </p>
         </div>
       </div>
 
@@ -126,12 +128,13 @@ function FlagSubmitPanel({
 
         {/* Actions */}
         <div className="flex gap-3">
-          <Link
-            href="/dashboard/flags"
+          <button
+            type="button"
+            onClick={onDone}
             className="flex-1 py-2 rounded-xl border border-border text-sm font-semibold text-muted-foreground hover:text-foreground text-center transition-all"
           >
             Cancel
-          </Link>
+          </button>
           <button
             type="submit"
             disabled={!category || reason.trim().length < 5 || submitting}
@@ -152,8 +155,10 @@ function FlagSubmitPanel({
 
 function FlaggedUrlCard({ item, highlight }: { item: FlaggedUrl; highlight: boolean }) {
   const [expanded, setExpanded] = useState(highlight)
+  const [urlExpanded, setUrlExpanded] = useState(false)
   const count = item.reports.length
   const justFlagged = Date.now() - new Date(item.first_seen).getTime() < 60_000
+  const truncatedUrl = item.post_url.length > 60 ? item.post_url.slice(0, 60) + '…' : item.post_url
 
   return (
     <div
@@ -188,14 +193,25 @@ function FlaggedUrlCard({ item, highlight }: { item: FlaggedUrl; highlight: bool
       </div>
 
       {/* URL */}
-      <a
-        href={item.post_url}
-        target="_blank"
-        rel="noreferrer"
-        className="inline-flex items-start gap-1 text-sm text-primary hover:underline mb-3 break-all leading-snug"
-      >
-        {item.post_url} <ExternalLink className="w-3 h-3 flex-shrink-0 mt-0.5" />
-      </a>
+      <div className="mb-3">
+        <a
+          href={item.post_url}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex items-start gap-1 text-sm text-primary hover:underline break-all leading-snug"
+        >
+          {urlExpanded ? item.post_url : truncatedUrl}
+          <ExternalLink className="w-3 h-3 flex-shrink-0 mt-0.5" />
+        </a>
+        {item.post_url.length > 60 && (
+          <button
+            onClick={() => setUrlExpanded(!urlExpanded)}
+            className="ml-1 text-xs text-muted-foreground hover:text-foreground underline"
+          >
+            {urlExpanded ? 'show less' : 'show more'}
+          </button>
+        )}
+      </div>
 
       {/* Toggle reports */}
       <button
@@ -245,7 +261,7 @@ function FlagsContent() {
   const [items, setItems]       = useState<FlaggedUrl[]>([])
   const [loading, setLoading]   = useState(true)
   const [loadError, setLoadError] = useState('')
-  const [submitted, setSubmitted] = useState(false)
+  const [showPanel, setShowPanel] = useState(!!incomingUrl && fromExtension)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -280,11 +296,9 @@ function FlagsContent() {
   useEffect(() => { load() }, [load])
 
   const handleSubmitted = useCallback(() => {
-    setSubmitted(true)
+    setShowPanel(false)
     load()
-  }, [load])
-
-  return (
+  }, [load])  return (
     <div className="max-w-3xl mx-auto w-full px-4 py-12 flex flex-col gap-6">
       {/* Refresh */}
       <div className="flex items-center justify-end">
@@ -298,14 +312,8 @@ function FlagsContent() {
       </div>
 
       {/* Submission form — only when coming from extension with a URL */}
-      {incomingUrl && !submitted && (
-        <FlagSubmitPanel postUrl={incomingUrl} onSubmitted={handleSubmitted} />
-      )}
-      {incomingUrl && submitted && (
-        <div className="flex items-center gap-3 p-4 rounded-2xl border border-green-200 bg-green-50 text-green-800 text-sm font-medium">
-          <CheckCircle className="w-5 h-5 flex-shrink-0" />
-          Report submitted — thank you for helping the community.
-        </div>
+      {showPanel && incomingUrl && (
+        <FlagSubmitPanel postUrl={incomingUrl} onDone={() => { setShowPanel(false); load() }} />
       )}
 
       {/* List */}

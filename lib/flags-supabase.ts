@@ -7,9 +7,9 @@ import { createClient } from '@supabase/supabase-js'
 // extension's RLS policies (supabase/migrations/0001_create_flags.sql in the
 // extension repo) are what actually govern access.
 const rawUrl =
-  process.env.NEXT_PUBLIC_STB_SUPABASE_URL || 'https://placeholder.supabase.co'
+  process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co'
 const flagsSupabaseUrl = rawUrl.replace(/\/rest\/v1\/?$/, '').replace(/\/$/, '')
-const flagsSupabaseAnonKey = process.env.NEXT_PUBLIC_STB_SUPABASE_ANON_KEY || 'placeholder'
+const flagsSupabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder'
 
 export const flagsSupabase = createClient(flagsSupabaseUrl, flagsSupabaseAnonKey)
 

@@ -298,7 +298,9 @@ function FlagsContent() {
   const handleSubmitted = useCallback(() => {
     setShowPanel(false)
     load()
-  }, [load])  return (
+  }, [load])
+
+  return (
     <div className="max-w-3xl mx-auto w-full px-4 py-12 flex flex-col gap-6">
       {/* Refresh */}
       <div className="flex items-center justify-end">

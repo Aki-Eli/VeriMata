@@ -63,6 +63,7 @@ Rules:
 - Base analysis strictly on observable visual evidence.
 - Be specific: cite exact regions or artifacts you see.
 - Be honest about uncertainty.
+- Only include factualityScore and factualClaims if the image contains a visible paragraph or significant block of readable text. Otherwise set factualityScore to null and factualClaims to [].
 
 Return ONLY raw JSON (no markdown, no code fences):
 {
@@ -70,6 +71,8 @@ Return ONLY raw JSON (no markdown, no code fences):
   "summary": "<1 sentence plain-language verdict>",
   "flags": ["<specific visual observations>"],
   "reasoning": "<2-3 sentences citing specific visual evidence>",
+  "factualityScore": <integer 0-100 or null if no readable text in image>,
+  "factualClaims": [],
   "deepReport": {
     "anatomicalAnalysis": "<paragraph: hands, faces, eyes, hair assessment>",
     "lightingAndShadows": "<paragraph: consistency of lighting and shadows>",

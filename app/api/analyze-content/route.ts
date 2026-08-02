@@ -192,7 +192,13 @@ async function analyzeImage(imageUrl?: string, imageBase64?: string, imageMimeTy
     `${IMAGE_PROMPT}\n\nAnalyze this image:`,
     imagePart,
   ])
-  return shape(safeParseJson(result.response.text().trim()))
+  const parsed = safeParseJson(result.response.text().trim())
+  // Guard: if no factual claims found, force factualityScore to null
+  if (!parsed.factualClaims || parsed.factualClaims.length === 0) {
+    parsed.factualityScore = null
+    parsed.factualClaims = []
+  }
+  return shape(parsed)
 }
 
 // ── HELPERS ────────────────────────────────────────────────────────────────

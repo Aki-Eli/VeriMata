@@ -29,12 +29,11 @@ export const metadata: Metadata = {
   keywords: ['AI detection', 'misinformation', 'media literacy', 'AI training', 'game'],
     icons: {
     icon: [
-      { url: '/logo.jpg', type: 'image/jpeg' },
+      { url: '/favicon.png', type: 'image/png' },
       { url: '/icon-light-32x32.png', media: '(prefers-color-scheme: light)' },
       { url: '/icon-dark-32x32.png', media: '(prefers-color-scheme: dark)' },
-      { url: '/icon.svg', type: 'image/svg+xml' },
     ],
-    apple: '/logo.jpg',
+    apple: '/apple-icon.png',
   },
 }
 

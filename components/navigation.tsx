@@ -3,6 +3,7 @@
 import { useAuth } from '@/lib/auth-context'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Zap, Trophy, LogOut, Home, BookOpen, Puzzle, ShieldAlert, Flame, Shield } from 'lucide-react'
 
@@ -41,7 +42,7 @@ export function Navigation() {
       <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
         <Link href="/dashboard" className="flex items-center gap-2.5 group shrink-0">
           <div className="relative w-9 h-9 rounded-xl overflow-hidden border-2 border-primary/30 transition-transform group-hover:scale-105 group-hover:-rotate-3">
-            <img src="/logo.jpg" alt="VeriMata" className="w-full h-full object-contain" />
+            <Image src="/logo.jpg" alt="VeriMata" fill className="object-contain" />
           </div>
           <div className="text-lg font-display font-bold tracking-tight leading-none">
             <span className="text-gradient">Veri</span>

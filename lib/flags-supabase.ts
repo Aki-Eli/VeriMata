@@ -13,7 +13,7 @@ const flagsSupabaseAnonKey = process.env.NEXT_PUBLIC_STB_SUPABASE_ANON_KEY || 'p
 
 export const flagsSupabase = createClient(flagsSupabaseUrl, flagsSupabaseAnonKey)
 
-// One row per "Flag as suspicious" click in the extension.
+// One row per unique URL/content — the registry entry.
 export interface FlaggedPost {
   id: string
   created_at: string
@@ -22,4 +22,16 @@ export interface FlaggedPost {
   ai_probability: number
   bias_flags: string[]
   reasoning: string | null
+  flag_count: number
+}
+
+// One row per user flag report, attached to a FlaggedPost.
+export interface FlagReport {
+  id: string
+  created_at: string
+  flag_id: string
+  user_id: string | null
+  user_email: string | null
+  reason: string
+  category: string | null
 }

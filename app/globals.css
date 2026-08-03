@@ -230,3 +230,12 @@
   }
   .confetti-piece { animation: confetti-fall linear forwards; }
 }
+
+/* ── Hide scrollbar globally while keeping scroll functionality ── */
+* {
+  scrollbar-width: none;        /* Firefox */
+  -ms-overflow-style: none;     /* IE / Edge */
+}
+*::-webkit-scrollbar {
+  display: none;                /* Chrome / Safari / Opera */
+}

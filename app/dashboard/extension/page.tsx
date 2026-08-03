@@ -30,7 +30,7 @@ export default function ExtensionPage() {
             </p>
           </div>
           <a
-            href="/downloads/VeriMata.zip"
+            href="/downloads/spot-the-bot-extension.zip"
             download
             className="press-scale shrink-0 inline-flex items-center gap-2 bg-primary text-primary-foreground font-semibold px-5 py-3 rounded-xl glow-primary hover:brightness-110 transition-all"
           >
@@ -73,45 +73,52 @@ export default function ExtensionPage() {
           <h2 className="text-xl font-semibold text-foreground mb-4">Install it</h2>
           <ol className="flex flex-col gap-3 text-sm text-foreground">
             <li className="flex gap-3">
-              <span className="shrink-0 w-6 h-6 rounded-full bg-primary/15 text-primary font-semibold text-xs flex items-center justify-center">
-                1
-              </span>
+              <span className="shrink-0 w-6 h-6 rounded-full bg-primary/15 text-primary font-semibold text-xs flex items-center justify-center">1</span>
+              <span>Download the .zip above and unzip it somewhere you&apos;ll remember (e.g. your Downloads folder).</span>
+            </li>
+            <li className="flex gap-3">
+              <span className="shrink-0 w-6 h-6 rounded-full bg-primary/15 text-primary font-semibold text-xs flex items-center justify-center">2</span>
+              <span>In Chrome, go to <code className="bg-muted px-1.5 py-0.5 rounded">chrome://extensions</code>.</span>
+            </li>
+            <li className="flex gap-3">
+              <span className="shrink-0 w-6 h-6 rounded-full bg-primary/15 text-primary font-semibold text-xs flex items-center justify-center">3</span>
+              <span>Turn on <strong>Developer mode</strong> (top-right toggle).</span>
+            </li>
+            <li className="flex gap-3">
+              <span className="shrink-0 w-6 h-6 rounded-full bg-primary/15 text-primary font-semibold text-xs flex items-center justify-center">4</span>
+              <span>Click <strong>Load unpacked</strong> and select the unzipped folder.</span>
+            </li>
+            <li className="flex gap-3">
+              <span className="shrink-0 w-6 h-6 rounded-full bg-primary/15 text-primary font-semibold text-xs flex items-center justify-center">5</span>
               <span>
-                Download the .zip above and unzip it somewhere you&apos;ll remember (e.g. your
-                Downloads folder).
+                Inside the unzipped folder, open the <code className="bg-muted px-1.5 py-0.5 rounded">.output</code> folder,
+                then select the <code className="bg-muted px-1.5 py-0.5 rounded">chrome-mv3</code> folder and click <strong>Select Folder</strong>.
               </span>
             </li>
             <li className="flex gap-3">
-              <span className="shrink-0 w-6 h-6 rounded-full bg-primary/15 text-primary font-semibold text-xs flex items-center justify-center">
-                2
-              </span>
-              <span>
-                In Chrome, go to <code className="bg-muted px-1.5 py-0.5 rounded">chrome://extensions</code>.
-              </span>
-            </li>
-            <li className="flex gap-3">
-              <span className="shrink-0 w-6 h-6 rounded-full bg-primary/15 text-primary font-semibold text-xs flex items-center justify-center">
-                3
-              </span>
-              <span>
-                Turn on <strong>Developer mode</strong> (top-right toggle).
-              </span>
-            </li>
-            <li className="flex gap-3">
-              <span className="shrink-0 w-6 h-6 rounded-full bg-primary/15 text-primary font-semibold text-xs flex items-center justify-center">
-                4
-              </span>
-              <span>
-                Click <strong>Load unpacked</strong> and select the unzipped folder.
-              </span>
-            </li>
-            <li className="flex gap-3">
-              <span className="shrink-0 w-6 h-6 rounded-full bg-primary/15 text-primary font-semibold text-xs flex items-center justify-center">
-                5
-              </span>
+              <span className="shrink-0 w-6 h-6 rounded-full bg-primary/15 text-primary font-semibold text-xs flex items-center justify-center">6</span>
               <span>Go to facebook.com, highlight some post text, and right-click to try it.</span>
             </li>
           </ol>
+        </div>
+
+        {/* Video walkthrough */}
+        <div>
+          <h2 className="text-xl font-semibold text-foreground mb-4">See it in action</h2>
+          <div className="hud-card rounded-2xl overflow-hidden">
+            <video
+              src="/extension-demo.mp4"
+              controls
+              playsInline
+              className="w-full"
+              poster="/extension-demo-poster.jpg"
+            >
+              Your browser does not support the video tag.
+            </video>
+          </div>
+          <p className="text-xs text-muted-foreground mt-2 text-center">
+            A quick walkthrough of installing and using the VeriMata extension.
+          </p>
         </div>
 
         {/* Link to flags dashboard */}

@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '')
-const MODEL = 'gemini-3.5-flash-lite'
+const MODEL = 'gemini-3.5-flash'
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL || '',

@@ -111,7 +111,7 @@ async function generateAiImage(prompt: string): Promise<string | null> {
 
 async function refillTextPool(needed: number): Promise<number> {
   if (needed <= 0) return 0
-  const model = genAI.getGenerativeModel({ model: 'gemini-3.5-flash-lite' })
+  const model = genAI.getGenerativeModel({ model: 'gemini-3.5-flash' })
   const shuffled = [...TOPICS].sort(() => Math.random() - 0.5)
   let inserted = 0
 
@@ -195,7 +195,7 @@ Topics: ${batchTopics.join(', ')}`)
 
 async function refillImagePool(needed: number): Promise<number> {
   if (needed <= 0) return 0
-  const model = genAI.getGenerativeModel({ model: 'gemini-3.5-flash-lite' })
+  const model = genAI.getGenerativeModel({ model: 'gemini-3.5-flash' })
   const shuffled = [...TOPICS].sort(() => Math.random() - 0.5)
   let inserted = 0
 
